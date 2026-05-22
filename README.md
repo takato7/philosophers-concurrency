@@ -1,12 +1,20 @@
 # Dining Philosophers
+*This project has been created as part of the 42 curriculum by tmitsuya*
 
 ## Overview
 
 This project is a concurrent simulation of the classic Dining Philosophers Problem implemented in C using POSIX threads and mutexes.
 
-It explores fundamental concepts in concurrent programming such as thread synchronization, shared resource management, race conditions, deadlock prevention, and starvation detection.
+It focuses on core concepts of concurrent programming, including:
 
-## Problem Statement
+- Thread synchronization
+- Shared resource management
+- Deadlock prevention
+- Race condition handling
+- Starvation detection
+- Time-sensitive system behavior
+
+### Problem Statement
 
 A number of philosophers sit around a circular table with one fork placed between each pair of philosophers.
 
@@ -18,20 +26,22 @@ Each philosopher continuously cycles through three states:
 
 To eat, a philosopher must acquire both the left and right forks.
 
-The challenge is to design a synchronization strategy that:
+### Constraints
 
-- Preventing deadlocks
-- Avoiding starvation
-- Eliminating data races
-- Synchronizing shared resources
-- Maintaining accurate timing
-- Designing safe thread termination
+The system must ensure:
+
+- No deadlocks
+- No data races
+- No starvation (if possible under timing constraints)
+- Accurate state transitions
+- Clean termination of all threads
+
+Philosophers do not communicate directly and have no global knowledge of the system state.
 
 ## Simulation Model
 
-Each philosopher is represented as an independent thread.
-
-Each fork is represented as a shared resource protected by a mutex.
+- Each philosopher is represented as an independent thread.
+- Each fork is represented as a shared resource protected by a mutex.
 
 The simulation ends when:
 
@@ -48,7 +58,7 @@ The simulation ends when:
         │                                                 │
         ▼                                                 ▼
  Philosopher Threads                              Monitor Thread
- (state machines)                          (death & termination check)
+ (independent state machines)              (liveness supervision)
         │
         ▼
  Shared Fork Mutexes
@@ -60,10 +70,7 @@ The simulation ends when:
 
 Each philosopher thread independently executes:
 ```
-take forks
-→ eat
-→ sleep
-→ think
+take forks → eat → sleep → think
 ```
 while competing for shared fork resources.
 
@@ -79,32 +86,30 @@ This separates simulation logic from liveness monitoring.
 
 ## Synchronization Strategy
 
-Fork access is synchronized using mutexes.
+All shared resources are protected using mutexes to ensure safe concurrent access.
 
 Critical sections include:
 
-- Fork acquisition
-- Printing state messages
-- Updating meal timestamps
-- Global stop conditions
+- Fork acquisition and release
+- Writing log messages (to prevent output interleaving)
+- Updating last meal timestamps
+- Checking global termination state
 
-This prevents:
+This guarantees:
 
-- Data races
-- Interleaved console output
-- Inconsistent simulation state
+- No data races
+- Consistent simulation state
+- Deterministic logging output
 
 ## Deadlock Prevention
 
-To prevent circular waiting between philosophers, fork acquisition order is controlled.
+Deadlock is prevented by breaking the circular wait condition.
 
-The implementation avoids scenarios where all philosophers hold one fork simultaneously while waiting indefinitely for the second.
+Philosophers acquire forks in a consistent global order.
 
-Strategies may include:
+To avoid symmetric locking patterns that could lead to circular dependencies, one philosopher uses an asymmetric acquisition strategy.
 
-- Asymmetric fork ordering
-- Delayed start timing
-- Even/odd philosopher scheduling
+This ensures that no cyclic dependency can form in the resource graph.
 
 ## Timing & Monitoring
 
@@ -146,10 +151,11 @@ make
 | `time_to_sleep`          | Sleeping duration                |
 | `must_eat_count`         | Optional termination condition   |
 
-### Example and Output
+### Example
 ```sh
 ./philo 3 200 60 60
 ```
+Example output:
 ```
 0 2 is thinking
 0 1 has taken a fork
@@ -166,20 +172,23 @@ make
 
 ## Mandatory vs Bonus
 
-### Mandatory
+### Mandatory (Threads + Mutexes)
 
 - POSIX threads
 - Mutex-based synchronization
 
-### Bonus
+### Bonus (Processes + Semaphores)
 
-- Processes instead of threads
-- Semaphore-based synchronization
+In the bonus version, philosophers are implemented as independent processes.
 
-The bonus implementation explores the difference between:
+Forks are no longer represented individually.
 
-- shared-memory concurrency
-- inter-process synchronization
+Instead, a counting semaphore is used to represent the global availability of resources.
+
+Behavior:
+- A philosopher must acquire permission from the semaphore before eating
+- The semaphore acts as a global resource controller
+- This eliminates deadlock by design
 
 ## Key Learnings
 
@@ -194,7 +203,16 @@ This project provided hands-on experience with:
 - Process vs thread architecture
 - Timing-sensitive programming in C
 
-## References
-
-
 ## Future Improvements
+
+### Thread Visualizer
+
+A graphical visualization of philosopher states and fork ownership.
+
+### Web-Based Concurrency Simulation
+
+A browser-based version using WebAssembly and JavaScript visualization.
+
+### Performance Analysis
+
+Profiling thread scheduling latency and synchronization overhead under heavy contention.
