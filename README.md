@@ -40,11 +40,21 @@ The simulation ends when:
 
 ## Concurrency Architecture
 
-Main Thread
-    ├── Philosopher Thread #1
-    ├── Philosopher Thread #2
-    ├── Philosopher Thread #3
-    └── Monitor Thread
+```text
+                          Main Thread
+                        (initialization)
+                                 │
+        ┌────────────────────────┴────────────────────────┐
+        │                                                 │
+        ▼                                                 ▼
+ Philosopher Threads                              Monitor Thread
+ (state machines)                          (death & termination check)
+        │
+        ▼
+ Shared Fork Mutexes
+ (critical section protection)
+
+```
 
 ### Philosopher Threads
 
@@ -116,6 +126,8 @@ Special attention is required because:
 
 ### Build
 ```sh
+git clone https://github.com/takato7/philosophers-concurrency.git
+cd philosophers-concurrency/philo
 make
 ```
 ### Run
